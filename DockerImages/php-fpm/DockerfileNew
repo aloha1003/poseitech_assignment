@@ -1,0 +1,15 @@
+#
+# NOTE: THIS DOCKERFILE IS GENERATED VIA "update.sh"
+#
+# PLEASE DO NOT EDIT IT DIRECTLY.
+#
+
+FROM php-cli
+
+RUN usermod -u 1000 www-data
+
+WORKDIR /var/www
+
+CMD ["php-fpm"]
+
+EXPOSE 9000

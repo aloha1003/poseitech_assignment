@@ -1,0 +1,65 @@
+version: '2'
+services:
+  applications:
+      image: tianon/true
+      volumes:
+        - ../workspace:/var/www
+  php:
+    image: php-cli
+    build:
+        context: ./php-cli
+    networks:
+      - backend
+  php-fpm:
+    build:
+      context: ./php-fpm
+      dockerfile: "DockerfileNew"
+    volumes_from:
+      - applications
+    volumes:
+      - ./php-fpm/php71.ini:/usr/local/etc/php/php.ini
+    expose:
+      - "9000"
+    networks:
+      - backend 
+    depends_on:
+          - php    
+  nginx:
+        build:
+          context: ./nginx
+          args:
+            - PHP_UPSTREAM=php-fpm
+        volumes_from:
+          - applications
+        volumes:
+          - ./logs/nginx/:/var/log/nginx
+          - ./nginx/sites/:/etc/nginx/sites-available
+        ports:
+          - "10080:80"
+          - "10443:443"
+        depends_on:
+          - php-fpm
+        networks:
+          - frontend
+          - backend
+  mysql:
+      build:
+        context: ./mysql
+      environment:
+        - MYSQL_DATABASE=poseitech
+        - MYSQL_USER=poseitech
+        - MYSQL_PASSWORD=secret
+        - MYSQL_ROOT_PASSWORD=root
+      volumes:
+        - ./data/mysql:/var/lib/mysql
+        - ./mysql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      ports:
+        - "3306:3306"
+      networks:
+        - backend
+        - frontend
+networks:
+  frontend:
+    driver: "bridge"
+  backend:
+    driver: "bridge"        
